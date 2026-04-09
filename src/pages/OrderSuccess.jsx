@@ -7,6 +7,7 @@ import {
   Bike,
   ShoppingBag,
 } from "lucide-react";
+import { useEffect, useState } from "react";
 
 function OrderSuccess() {
   const { state } = useLocation();
@@ -44,7 +45,41 @@ function OrderSuccess() {
     delivered: 4,
   };
 
-  const currentStepIndex = statusIndexMap[order.status] ?? 1;
+  const [currentStatus, setCurrentStatus] = useState(order.status);
+
+  useEffect(() => {
+    const flow = ["confirmed", "preparing", "on_the_way", "delivered"];
+    let index = flow.indexOf(order.status);
+
+    const interval = setInterval(() => {
+      index += 1;
+
+      if (index < flow.length) {
+        setCurrentStatus(flow[index]);
+      } else {
+        clearInterval(interval);
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [order.status]);
+
+  const currentStepIndex = statusIndexMap[currentStatus] ?? 1;
+
+  const getStatusLabel = () => {
+    switch (currentStatus) {
+      case "confirmed":
+        return "Bestellung bestätigt";
+      case "preparing":
+        return "In Zubereitung";
+      case "on_the_way":
+        return "Unterwegs";
+      case "delivered":
+        return "Geliefert";
+      default:
+        return "Bestellung bestätigt";
+    }
+  };
 
   return (
     <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
@@ -54,6 +89,7 @@ function OrderSuccess() {
             <div className="rounded-2xl bg-emerald-500/15 p-3 text-emerald-400">
               <CheckCircle2 size={28} />
             </div>
+
             <div>
               <p className="text-sm uppercase tracking-[0.25em] text-emerald-300">
                 Bestellung erfolgreich
@@ -132,6 +168,7 @@ function OrderSuccess() {
                       >
                         {index + 1}
                       </div>
+
                       <p
                         className={`mt-3 text-sm ${
                           active ? "text-white" : "text-neutral-500"
@@ -162,6 +199,7 @@ function OrderSuccess() {
                         {item.category}
                       </p>
                     </div>
+
                     <p className="font-semibold text-white">
                       €{Number(item.price).toFixed(2)}
                     </p>
@@ -174,10 +212,12 @@ function OrderSuccess() {
                   <span>Zwischensumme</span>
                   <span>€{Number(order.subtotal).toFixed(2)}</span>
                 </div>
+
                 <div className="flex justify-between text-neutral-300">
                   <span>Liefergebühr</span>
                   <span>€{Number(order.deliveryFee).toFixed(2)}</span>
                 </div>
+
                 <div className="flex justify-between border-t border-white/10 pt-4 text-lg font-bold text-white">
                   <span>Gesamt</span>
                   <span>€{Number(order.total).toFixed(2)}</span>
@@ -244,8 +284,9 @@ function OrderSuccess() {
               <h3 className="text-xl font-semibold text-white">
                 Aktueller Status
               </h3>
+
               <p className="mt-4 inline-flex rounded-full bg-orange-500/10 px-4 py-2 text-sm font-medium text-orange-300 ring-1 ring-orange-500/20">
-                Bestellung bestätigt
+                {getStatusLabel()}
               </p>
             </div>
 

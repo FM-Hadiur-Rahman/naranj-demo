@@ -61,6 +61,17 @@ function Navbar({ cartCount = 0 }) {
           >
             Rewards
           </NavLink>
+
+          <NavLink
+            to="/admin"
+            className={({ isActive }) =>
+              `text-sm transition ${
+                isActive ? "text-white" : "text-neutral-400 hover:text-white"
+              }`
+            }
+          >
+            Admin Demo
+          </NavLink>
         </nav>
 
         <div className="flex items-center gap-3">

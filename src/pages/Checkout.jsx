@@ -1,7 +1,77 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
 function Checkout({ cart }) {
+  const navigate = useNavigate();
+
+  const [form, setForm] = useState({
+    name: "",
+    phone: "",
+    address: "",
+    orderType: "delivery",
+    paymentMethod: "Barzahlung",
+    note: "",
+  });
+
   const subtotal = cart.reduce((sum, item) => sum + item.price, 0);
-  const deliveryFee = cart.length ? 2.9 : 0;
+  const deliveryFee = cart.length && form.orderType === "delivery" ? 2.9 : 0;
   const total = subtotal + deliveryFee;
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    if (!cart.length) {
+      alert("Ihr Warenkorb ist leer.");
+      return;
+    }
+
+    if (
+      !form.name ||
+      !form.phone ||
+      (form.orderType === "delivery" && !form.address)
+    ) {
+      alert("Bitte füllen Sie alle Pflichtfelder aus.");
+      return;
+    }
+
+    const now = new Date();
+    const minMinutes = 25;
+    const maxMinutes = 35;
+    const randomMinutes =
+      Math.floor(Math.random() * (maxMinutes - minMinutes + 1)) + minMinutes;
+
+    const arrival = new Date(now.getTime() + randomMinutes * 60000);
+
+    const orderData = {
+      orderId: `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
+      customerName: form.name,
+      phone: form.phone,
+      address:
+        form.orderType === "delivery" ? form.address : "Abholung im Restaurant",
+      orderType: form.orderType,
+      paymentMethod: form.paymentMethod,
+      note: form.note,
+      subtotal,
+      deliveryFee,
+      total,
+      estimatedMinutes: `${randomMinutes} Minuten`,
+      estimatedArrival: `ca. ${arrival.toLocaleTimeString("de-DE", {
+        hour: "2-digit",
+        minute: "2-digit",
+      })}`,
+      status: "confirmed",
+      items: cart,
+    };
+
+    navigate("/order-success", {
+      state: { order: orderData },
+    });
+  };
 
   return (
     <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
@@ -18,32 +88,53 @@ function Checkout({ cart }) {
         <div className="rounded-[2rem] border border-white/10 bg-white/5 p-6">
           <h2 className="text-2xl font-semibold text-white">Lieferdetails</h2>
 
-          <form className="mt-6 grid gap-4">
+          <form onSubmit={handleSubmit} className="mt-6 grid gap-4">
             <input
               type="text"
+              name="name"
+              value={form.name}
+              onChange={handleChange}
               placeholder="Vollständiger Name"
               className="rounded-2xl border border-white/10 bg-neutral-900 px-4 py-3 text-white outline-none placeholder:text-neutral-500"
             />
 
             <input
               type="tel"
+              name="phone"
+              value={form.phone}
+              onChange={handleChange}
               placeholder="Telefonnummer"
               className="rounded-2xl border border-white/10 bg-neutral-900 px-4 py-3 text-white outline-none placeholder:text-neutral-500"
             />
 
-            <input
-              type="text"
-              placeholder="Lieferadresse"
-              className="rounded-2xl border border-white/10 bg-neutral-900 px-4 py-3 text-white outline-none placeholder:text-neutral-500"
-            />
+            {form.orderType === "delivery" && (
+              <input
+                type="text"
+                name="address"
+                value={form.address}
+                onChange={handleChange}
+                placeholder="Lieferadresse"
+                className="rounded-2xl border border-white/10 bg-neutral-900 px-4 py-3 text-white outline-none placeholder:text-neutral-500"
+              />
+            )}
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <select className="rounded-2xl border border-white/10 bg-neutral-900 px-4 py-3 text-white outline-none">
-                <option>Lieferung</option>
-                <option>Abholung</option>
+              <select
+                name="orderType"
+                value={form.orderType}
+                onChange={handleChange}
+                className="rounded-2xl border border-white/10 bg-neutral-900 px-4 py-3 text-white outline-none"
+              >
+                <option value="delivery">Lieferung</option>
+                <option value="pickup">Abholung</option>
               </select>
 
-              <select className="rounded-2xl border border-white/10 bg-neutral-900 px-4 py-3 text-white outline-none">
+              <select
+                name="paymentMethod"
+                value={form.paymentMethod}
+                onChange={handleChange}
+                className="rounded-2xl border border-white/10 bg-neutral-900 px-4 py-3 text-white outline-none"
+              >
                 <option>Barzahlung</option>
                 <option>Kartenzahlung</option>
                 <option>Online Zahlung</option>
@@ -52,12 +143,15 @@ function Checkout({ cart }) {
 
             <textarea
               rows="4"
+              name="note"
+              value={form.note}
+              onChange={handleChange}
               placeholder="Bemerkung zur Bestellung"
               className="rounded-2xl border border-white/10 bg-neutral-900 px-4 py-3 text-white outline-none placeholder:text-neutral-500"
             />
 
             <button
-              type="button"
+              type="submit"
               className="mt-2 rounded-full bg-white px-6 py-4 text-sm font-semibold text-black transition hover:scale-[1.01]"
             >
               Bestellung absenden

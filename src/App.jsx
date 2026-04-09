@@ -12,7 +12,7 @@ import AdminMenu from "./admin/pages/AdminMenu";
 import AdminDelivery from "./admin/pages/AdminDelivery";
 import AdminCustomers from "./admin/pages/AdminCustomers";
 import AdminSettings from "./admin/pages/AdminSettings";
-
+import OrderSuccess from "./pages/OrderSuccess";
 function App() {
   const [cart, setCart] = useState([]);
 
@@ -49,6 +49,16 @@ function App() {
             <div className="min-h-screen bg-neutral-950 text-white">
               <Navbar cartCount={cart.length} />
               <Checkout cart={cart} />
+              <Footer />
+            </div>
+          }
+        />
+        <Route
+          path="/order-success"
+          element={
+            <div className="min-h-screen bg-neutral-950 text-white">
+              <Navbar cartCount={cart.length} />
+              <OrderSuccess />
               <Footer />
             </div>
           }

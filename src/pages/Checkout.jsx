@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useOrders } from "../context/OrderContext";
 
 function Checkout({ cart }) {
   const navigate = useNavigate();
+  const { createOrder } = useOrders();
 
   const [form, setForm] = useState({
     name: "",
@@ -40,11 +42,7 @@ function Checkout({ cart }) {
     }
 
     const now = new Date();
-    const minMinutes = 25;
-    const maxMinutes = 35;
-    const randomMinutes =
-      Math.floor(Math.random() * (maxMinutes - minMinutes + 1)) + minMinutes;
-
+    const randomMinutes = Math.floor(Math.random() * 11) + 25;
     const arrival = new Date(now.getTime() + randomMinutes * 60000);
 
     const orderData = {
@@ -65,11 +63,16 @@ function Checkout({ cart }) {
         minute: "2-digit",
       })}`,
       status: "confirmed",
-      items: cart,
+      items: cart.map((item) => ({
+        ...item,
+        qty: item.qty || 1,
+      })),
     };
 
+    const createdOrder = createOrder(orderData);
+
     navigate("/order-success", {
-      state: { order: orderData },
+      state: { orderId: createdOrder.id },
     });
   };
 
@@ -200,12 +203,6 @@ function Checkout({ cart }) {
               <span>Gesamt</span>
               <span>€{total.toFixed(2)}</span>
             </div>
-          </div>
-
-          <div className="mt-6 rounded-2xl border border-orange-400/20 bg-orange-400/10 p-4">
-            <p className="text-sm font-medium text-orange-200">
-              + 12 Treuepunkte für diese Bestellung
-            </p>
           </div>
         </div>
       </div>

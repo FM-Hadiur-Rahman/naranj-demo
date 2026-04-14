@@ -2,11 +2,12 @@ import { Phone, MapPin, Clock3, Bike, ShoppingBag } from "lucide-react";
 import StatusBadge from "./StatusBadge";
 
 function OrderCard({ order, onStatusChange }) {
-  const itemCount = order.items.reduce((sum, item) => sum + item.qty, 0);
+  const itemCount = order.items.reduce((sum, item) => sum + (item.qty || 1), 0);
 
   const getNextActions = () => {
     switch (order.status) {
       case "new":
+      case "confirmed":
         return [
           {
             label: "Annehmen",
@@ -56,28 +57,12 @@ function OrderCard({ order, onStatusChange }) {
             primary: true,
           },
         ];
-      case "delivered":
-        return [
-          {
-            label: "Erledigt",
-            action: () => {},
-          },
-        ];
-      case "cancelled":
-        return [
-          {
-            label: "Storniert",
-            action: () => {},
-          },
-        ];
       default:
         return [];
     }
   };
 
   const actions = getNextActions();
-  const isFinalState =
-    order.status === "delivered" || order.status === "cancelled";
 
   return (
     <div className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-lg shadow-black/20">
@@ -129,10 +114,10 @@ function OrderCard({ order, onStatusChange }) {
                   className="flex items-center justify-between text-sm"
                 >
                   <span className="text-neutral-200">
-                    {item.qty}x {item.name}
+                    {item.qty || 1}x {item.name}
                   </span>
                   <span className="font-medium text-white">
-                    €{(item.qty * item.price).toFixed(2)}
+                    €{(Number(item.qty || 1) * Number(item.price)).toFixed(2)}
                   </span>
                 </div>
               ))}
@@ -144,7 +129,6 @@ function OrderCard({ order, onStatusChange }) {
               <MapPin size={15} className="mt-0.5 shrink-0" />
               <span>{order.address}</span>
             </p>
-
             {order.note && (
               <p>
                 <span className="font-medium text-neutral-300">Notiz:</span>{" "}
@@ -160,20 +144,19 @@ function OrderCard({ order, onStatusChange }) {
               <span>Artikel</span>
               <span className="text-white">{itemCount}</span>
             </div>
-
             <div className="flex items-center justify-between text-neutral-400">
               <span>Zahlung</span>
               <span className="text-white">{order.paymentMethod}</span>
             </div>
-
             <div className="flex items-center justify-between text-neutral-400">
               <span>Status</span>
               <span className="text-white">{order.paymentStatus}</span>
             </div>
-
             <div className="flex items-center justify-between border-t border-white/10 pt-3 text-base font-semibold">
               <span className="text-neutral-300">Gesamt</span>
-              <span className="text-white">€{order.total.toFixed(2)}</span>
+              <span className="text-white">
+                €{Number(order.total).toFixed(2)}
+              </span>
             </div>
           </div>
 
@@ -182,29 +165,15 @@ function OrderCard({ order, onStatusChange }) {
               <button
                 key={`${btn.label}-${index}`}
                 onClick={btn.action}
-                disabled={isFinalState}
                 className={
                   btn.primary
-                    ? "rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-black transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-60"
-                    : "rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
+                    ? "rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-black transition hover:scale-[1.01]"
+                    : "rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
                 }
               >
                 {btn.label}
               </button>
             ))}
-
-            {order.type === "delivery" && !isFinalState && (
-              <a
-                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                  order.address,
-                )}`}
-                target="_blank"
-                rel="noreferrer"
-                className="rounded-2xl border border-orange-500/20 bg-orange-500/10 px-4 py-3 text-center text-sm font-semibold text-orange-300 transition hover:bg-orange-500/15"
-              >
-                In Google Maps öffnen
-              </a>
-            )}
           </div>
         </div>
       </div>

@@ -2,16 +2,17 @@ import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import AdminLayout from "../components/AdminLayout";
 import OrderCard from "../components/OrderCard";
-import { orders as initialOrders } from "../data/orders";
+import { useOrders } from "../../context/OrderContext";
 
 function AdminOrders() {
   const [activeFilter, setActiveFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
-  const [orders, setOrders] = useState(initialOrders);
+  const { orders, updateOrderStatus } = useOrders();
 
   const filters = [
     { key: "all", label: "Alle" },
     { key: "new", label: "Neu" },
+    { key: "confirmed", label: "Bestätigt" },
     { key: "accepted", label: "Akzeptiert" },
     { key: "preparing", label: "In Zubereitung" },
     { key: "ready", label: "Bereit" },
@@ -19,14 +20,6 @@ function AdminOrders() {
     { key: "delivered", label: "Geliefert" },
     { key: "cancelled", label: "Storniert" },
   ];
-
-  const handleStatusChange = (orderId, nextStatus) => {
-    setOrders((prev) =>
-      prev.map((order) =>
-        order.id === orderId ? { ...order, status: nextStatus } : order,
-      ),
-    );
-  };
 
   const filteredOrders = useMemo(() => {
     return orders.filter((order) => {
@@ -53,10 +46,6 @@ function AdminOrders() {
           <h2 className="mt-3 text-3xl font-semibold text-white">
             Bestellungen verwalten
           </h2>
-          <p className="mt-3 max-w-2xl text-neutral-400">
-            Neue Bestellungen annehmen, Status aktualisieren und Liefer- oder
-            Abholaufträge übersichtlich organisieren.
-          </p>
         </div>
 
         <div className="mb-6 rounded-3xl border border-white/10 bg-white/5 p-5">
@@ -90,55 +79,14 @@ function AdminOrders() {
           </div>
         </div>
 
-        <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <p className="text-sm text-neutral-400">Alle Bestellungen</p>
-            <p className="mt-2 text-2xl font-semibold text-white">
-              {orders.length}
-            </p>
-          </div>
-
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <p className="text-sm text-neutral-400">Neu</p>
-            <p className="mt-2 text-2xl font-semibold text-white">
-              {orders.filter((o) => o.status === "new").length}
-            </p>
-          </div>
-
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <p className="text-sm text-neutral-400">Unterwegs</p>
-            <p className="mt-2 text-2xl font-semibold text-white">
-              {orders.filter((o) => o.status === "out_for_delivery").length}
-            </p>
-          </div>
-
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <p className="text-sm text-neutral-400">Geliefert</p>
-            <p className="mt-2 text-2xl font-semibold text-white">
-              {orders.filter((o) => o.status === "delivered").length}
-            </p>
-          </div>
-        </div>
-
         <div className="space-y-6">
-          {filteredOrders.length > 0 ? (
-            filteredOrders.map((order) => (
-              <OrderCard
-                key={order.id}
-                order={order}
-                onStatusChange={handleStatusChange}
-              />
-            ))
-          ) : (
-            <div className="rounded-3xl border border-dashed border-white/10 bg-white/5 p-10 text-center">
-              <p className="text-lg font-medium text-white">
-                Keine Bestellungen gefunden
-              </p>
-              <p className="mt-2 text-sm text-neutral-400">
-                Ändern Sie den Filter oder die Sucheingabe.
-              </p>
-            </div>
-          )}
+          {filteredOrders.map((order) => (
+            <OrderCard
+              key={order.id}
+              order={order}
+              onStatusChange={updateOrderStatus}
+            />
+          ))}
         </div>
       </section>
     </AdminLayout>
